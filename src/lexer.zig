@@ -11,29 +11,43 @@ pub const Lexer = struct {
 
     pub fn init(input: []const u8) Lexer {
         var lexer = Lexer{ .input = input };
-        lexer.readChar();
+        lexer.read_char();
 
         return lexer;
     }
 
-    pub fn nextToken(self: *Lexer) Token {
-        const token = switch (self.ch) {
-            '=' => Token{ .type = .assign, .literal = "=" },
-            ';' => Token{ .type = .semicolon, .literal = ";" },
-            '(' => Token{ .type = .lparen, .literal = "(" },
-            ')' => Token{ .type = .rparen, .literal = ")" },
-            ',' => Token{ .type = .comma, .literal = "," },
-            '+' => Token{ .type = .plus, .literal = "+" },
-            '{' => Token{ .type = .lbrace, .literal = "{" },
-            '}' => Token{ .type = .rbrace, .literal = "}" },
-            else => Token{ .type = .eof },
-        };
+    pub fn next_token(self: *Lexer) Token {
+        self.skip_whitespace();
 
-        self.readChar();
+        var token: Token = undefined;
+        switch (self.ch) {
+            '=' => token = Token{ .type = .assign, .literal = "=" },
+            ';' => token = Token{ .type = .semicolon, .literal = ";" },
+            '(' => token = Token{ .type = .lparen, .literal = "(" },
+            ')' => token = Token{ .type = .rparen, .literal = ")" },
+            ',' => token = Token{ .type = .comma, .literal = "," },
+            '+' => token = Token{ .type = .plus, .literal = "+" },
+            '{' => token = Token{ .type = .lbrace, .literal = "{" },
+            '}' => token = Token{ .type = .rbrace, .literal = "}" },
+            0 => token = Token{ .type = .eof },
+            else => {
+                if (is_letter(self.ch)) {
+                    const lit = self.read_identifier();
+                    const token_type = Token.lookup_ident(lit);
+                    return Token{ .type = token_type, .literal = lit };
+                } else if (std.ascii.isDigit(self.ch)) {
+                    const lit = self.read_number();
+                    return Token{ .type = .int, .literal = lit };
+                }
+                token = Token{ .type = .illegal, .literal = &[_]u8{self.ch} };
+            },
+        }
+
+        self.read_char();
         return token;
     }
 
-    fn readChar(self: *Lexer) void {
+    fn read_char(self: *Lexer) void {
         if (self.read_position >= self.input.len) {
             self.ch = 0;
         } else {
@@ -42,7 +56,33 @@ pub const Lexer = struct {
         self.position = self.read_position;
         self.read_position += 1;
     }
+
+    fn read_number(self: *Lexer) []const u8 {
+        const position = self.position;
+        while (std.ascii.isDigit(self.ch)) {
+            self.read_char();
+        }
+        return self.input[position..self.position];
+    }
+
+    fn read_identifier(self: *Lexer) []const u8 {
+        const position = self.position;
+        while (is_letter(self.ch)) {
+            self.read_char();
+        }
+        return self.input[position..self.position];
+    }
+
+    fn skip_whitespace(self: *Lexer) void {
+        while (std.ascii.isWhitespace(self.ch)) {
+            self.read_char();
+        }
+    }
 };
+
+fn is_letter(char: u8) bool {
+    return std.ascii.isAlphabetic(char) or char == '_';
+}
 
 test "lexer" {
     const input =
@@ -98,7 +138,7 @@ test "lexer" {
     };
 
     for (test_tokens) |test_token| {
-        const token = lexer.nextToken();
+        const token = lexer.next_token();
         try expectEqual(test_token.type, token.type);
         try expectEqualStrings(test_token.literal, token.literal);
     }
