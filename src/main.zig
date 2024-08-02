@@ -1,20 +1,27 @@
 const std = @import("std");
+const Lexer = @import("lexer.zig").Lexer;
+const Token = @import("token.zig").Token;
 
-const print = std.debug.print;
+var gp = std.heap.GeneralPurposeAllocator(.{}){};
+const gpa = gp.allocator();
 
 pub fn main() !void {
-    for (0..10) |_| {
-        print("I will write an interpreter\n", .{});
-    }
+    const stdout = std.io.getStdOut().writer();
+    const stdin = std.io.getStdIn().reader();
 
-    // stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
-    // const stdout_file = std.io.getStdOut().writer();
-    // var bw = std.io.bufferedWriter(stdout_file);
-    // const stdout = bw.writer();
-    //
-    // try stdout.print("Run `zig build test` to run the tests.\n", .{});
-    //
-    // try bw.flush(); // don't forget to flush!
+    try stdout.print("Welcome to Monkey REPL in Zig!\n", .{});
+    // repl
+    while (true) {
+        try stdout.print(">> ", .{});
+
+        if (try stdin.readUntilDelimiterOrEofAlloc(gpa, '\n', 1024)) |input| {
+            var lexer = Lexer.init(input);
+            var token = lexer.next_token();
+            while (token.type != Token.Type.eof) : (token = lexer.next_token()) {
+                try stdout.print("Token: type = {s}, literal = \"{s}\"\n", .{ @tagName(token.type), token.literal });
+            }
+        } else {
+            break;
+        }
+    }
 }
