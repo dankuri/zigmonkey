@@ -22,11 +22,17 @@ pub const Lexer = struct {
         var token: Token = undefined;
         switch (self.ch) {
             '=' => token = Token{ .type = .assign, .literal = "=" },
+            '+' => token = Token{ .type = .plus, .literal = "+" },
+            '-' => token = Token{ .type = .minus, .literal = "-" },
+            '!' => token = Token{ .type = .bang, .literal = "!" },
+            '*' => token = Token{ .type = .asterisk, .literal = "*" },
+            '/' => token = Token{ .type = .slash, .literal = "/" },
+            '<' => token = Token{ .type = .lt, .literal = "<" },
+            '>' => token = Token{ .type = .gt, .literal = ">" },
+            ',' => token = Token{ .type = .comma, .literal = "," },
             ';' => token = Token{ .type = .semicolon, .literal = ";" },
             '(' => token = Token{ .type = .lparen, .literal = "(" },
             ')' => token = Token{ .type = .rparen, .literal = ")" },
-            ',' => token = Token{ .type = .comma, .literal = "," },
-            '+' => token = Token{ .type = .plus, .literal = "+" },
             '{' => token = Token{ .type = .lbrace, .literal = "{" },
             '}' => token = Token{ .type = .rbrace, .literal = "}" },
             0 => token = Token{ .type = .eof },
@@ -93,6 +99,8 @@ test "lexer" {
         \\};
         \\
         \\let result = add(five, ten);
+        \\!-/*5;
+        \\5 < 10 > 5;
     ;
 
     var lexer = Lexer.init(input);
@@ -103,11 +111,13 @@ test "lexer" {
         .{ .type = .assign, .literal = "=" },
         .{ .type = .int, .literal = "5" },
         .{ .type = .semicolon, .literal = ";" },
+
         .{ .type = .let, .literal = "let" },
         .{ .type = .ident, .literal = "ten" },
         .{ .type = .assign, .literal = "=" },
         .{ .type = .int, .literal = "10" },
         .{ .type = .semicolon, .literal = ";" },
+
         .{ .type = .let, .literal = "let" },
         .{ .type = .ident, .literal = "add" },
         .{ .type = .assign, .literal = "=" },
@@ -124,6 +134,7 @@ test "lexer" {
         .{ .type = .semicolon, .literal = ";" },
         .{ .type = .rbrace, .literal = "}" },
         .{ .type = .semicolon, .literal = ";" },
+
         .{ .type = .let, .literal = "let" },
         .{ .type = .ident, .literal = "result" },
         .{ .type = .assign, .literal = "=" },
@@ -134,6 +145,21 @@ test "lexer" {
         .{ .type = .ident, .literal = "ten" },
         .{ .type = .rparen, .literal = ")" },
         .{ .type = .semicolon, .literal = ";" },
+
+        .{ .type = .bang, .literal = "!" },
+        .{ .type = .minus, .literal = "-" },
+        .{ .type = .slash, .literal = "/" },
+        .{ .type = .asterisk, .literal = "*" },
+        .{ .type = .int, .literal = "5" },
+        .{ .type = .semicolon, .literal = ";" },
+
+        .{ .type = .int, .literal = "5" },
+        .{ .type = .lt, .literal = "<" },
+        .{ .type = .int, .literal = "10" },
+        .{ .type = .gt, .literal = ">" },
+        .{ .type = .int, .literal = "5" },
+        .{ .type = .semicolon, .literal = ";" },
+
         .{ .type = .eof },
     };
 
