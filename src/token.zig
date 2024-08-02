@@ -7,6 +7,11 @@ pub const Token = struct {
     const keywords = std.StaticStringMap(Token.Type).initComptime(.{
         .{ "fn", .function },
         .{ "let", .let },
+        .{ "true", .true_ },
+        .{ "false", .false_ },
+        .{ "if", .if_ },
+        .{ "else", .else_ },
+        .{ "return", .return_ },
     });
 
     pub fn lookup_ident(ident: []const u8) Token.Type {
@@ -44,5 +49,10 @@ pub const Token = struct {
         // keywords
         function,
         let,
+        true_,
+        false_,
+        if_,
+        else_,
+        return_,
     };
 };

@@ -101,6 +101,12 @@ test "lexer" {
         \\let result = add(five, ten);
         \\!-/*5;
         \\5 < 10 > 5;
+        \\
+        \\if (5 < 10) {
+        \\  return true;
+        \\} else {
+        \\  return false;
+        \\}
     ;
 
     var lexer = Lexer.init(input);
@@ -159,6 +165,30 @@ test "lexer" {
         .{ .type = .gt, .literal = ">" },
         .{ .type = .int, .literal = "5" },
         .{ .type = .semicolon, .literal = ";" },
+
+        //if (5 < 10) {
+        //  return true;
+        //} else {
+        //  return false;
+        //}
+
+        .{ .type = .if_, .literal = "if" },
+        .{ .type = .lparen, .literal = "(" },
+        .{ .type = .int, .literal = "5" },
+        .{ .type = .lt, .literal = "<" },
+        .{ .type = .int, .literal = "10" },
+        .{ .type = .rparen, .literal = ")" },
+        .{ .type = .lbrace, .literal = "{" },
+        .{ .type = .return_, .literal = "return" },
+        .{ .type = .true_, .literal = "true" },
+        .{ .type = .semicolon, .literal = ";" },
+        .{ .type = .rbrace, .literal = "}" },
+        .{ .type = .else_, .literal = "else" },
+        .{ .type = .lbrace, .literal = "{" },
+        .{ .type = .return_, .literal = "return" },
+        .{ .type = .false_, .literal = "false" },
+        .{ .type = .semicolon, .literal = ";" },
+        .{ .type = .rbrace, .literal = "}" },
 
         .{ .type = .eof },
     };
