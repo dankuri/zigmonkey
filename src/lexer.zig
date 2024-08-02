@@ -21,10 +21,24 @@ pub const Lexer = struct {
 
         var token: Token = undefined;
         switch (self.ch) {
-            '=' => token = Token{ .type = .assign, .literal = "=" },
+            '=' => {
+                if (self.peek_char() == '=') {
+                    self.read_char();
+                    token = Token{ .type = .eq, .literal = "==" };
+                } else {
+                    token = Token{ .type = .assign, .literal = "=" };
+                }
+            },
             '+' => token = Token{ .type = .plus, .literal = "+" },
             '-' => token = Token{ .type = .minus, .literal = "-" },
-            '!' => token = Token{ .type = .bang, .literal = "!" },
+            '!' => {
+                if (self.peek_char() == '=') {
+                    self.read_char();
+                    token = Token{ .type = .not_eq, .literal = "!=" };
+                } else {
+                    token = Token{ .type = .bang, .literal = "!" };
+                }
+            },
             '*' => token = Token{ .type = .asterisk, .literal = "*" },
             '/' => token = Token{ .type = .slash, .literal = "/" },
             '<' => token = Token{ .type = .lt, .literal = "<" },
@@ -51,6 +65,14 @@ pub const Lexer = struct {
 
         self.read_char();
         return token;
+    }
+
+    fn peek_char(self: *Lexer) u8 {
+        if (self.read_position >= self.input.len) {
+            return 0;
+        } else {
+            return self.input[self.read_position];
+        }
     }
 
     fn read_char(self: *Lexer) void {
@@ -107,6 +129,9 @@ test "lexer" {
         \\} else {
         \\  return false;
         \\}
+        \\
+        \\10 == 10;
+        \\10 != 9;
     ;
 
     var lexer = Lexer.init(input);
@@ -189,6 +214,15 @@ test "lexer" {
         .{ .type = .false_, .literal = "false" },
         .{ .type = .semicolon, .literal = ";" },
         .{ .type = .rbrace, .literal = "}" },
+
+        .{ .type = .int, .literal = "10" },
+        .{ .type = .eq, .literal = "==" },
+        .{ .type = .int, .literal = "10" },
+        .{ .type = .semicolon, .literal = ";" },
+        .{ .type = .int, .literal = "10" },
+        .{ .type = .not_eq, .literal = "!=" },
+        .{ .type = .int, .literal = "9" },
+        .{ .type = .semicolon, .literal = ";" },
 
         .{ .type = .eof },
     };
